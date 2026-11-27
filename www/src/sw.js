@@ -1,19 +1,29 @@
 const CACHE_NAME = "ys-play-v1";
 const PLAYGROUND_PATH = "/play/";
+const NETWORK_TIMEOUT = 3000;
 const ASSET_PATTERN = new RegExp(
   "<(?:link|script|img)\\b[^>]*?\\s(?:href|src)=\"([^\"]+)\"" +
   "|\\sdata-[a-z-]+-url=\"([^\"]+)\"",
   "g",
 );
 
+function recode(response, Stream) {
+  return new Response(response.body.pipeThrough(new Stream("gzip")), response);
+}
+
+function store(cache, key, response) {
+  return cache.put(key, recode(response, CompressionStream));
+}
+
 async function precache() {
+  if (!registration.scope.endsWith(PLAYGROUND_PATH)) return;
   const cache = await caches.open(CACHE_NAME);
   const response = await fetch(PLAYGROUND_PATH, {cache: "no-cache"});
   if (!response.ok) {
     throw new Error(`Unable to load Playground: ${response.status}`);
   }
   const html = await response.clone().text();
-  await cache.put(PLAYGROUND_PATH, response);
+  await store(cache, PLAYGROUND_PATH, response);
   const urls = new Set();
   for (const match of html.matchAll(ASSET_PATTERN)) {
     const url = new URL(
@@ -24,7 +34,10 @@ async function precache() {
       !/\.(?:html|xml)$/i.test(url.pathname);
     if (url.origin === location.origin && file) urls.add(url.href);
   }
-  await Promise.allSettled([...urls].map((url) => cache.add(url)));
+  await Promise.allSettled([...urls].map(async (url) => {
+    const asset = await fetch(url);
+    if (asset.ok) await store(cache, url, asset);
+  }));
 }
 
 async function networkFirst(event) {
@@ -32,21 +45,18 @@ async function networkFirst(event) {
   const cache = await caches.open(CACHE_NAME);
   const navigate = request.mode === "navigate";
   const key = navigate ? new URL(request.url).pathname : request;
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cached = await cache.match(key);
-      const etag = response.headers.get("etag");
-      if (!cached || !etag || cached.headers.get("etag") !== etag) {
-        event.waitUntil(cache.put(key, response.clone()));
-      }
+  const cached = await cache.match(key);
+  const network = fetch(request).then((response) => {
+    const etag = response.headers.get("etag");
+    if (response.ok && !(etag && cached?.headers.get("etag") === etag)) {
+      event.waitUntil(store(cache, key, response.clone()));
     }
     return response;
-  } catch (error) {
-    const cached = await cache.match(key);
-    if (cached) return cached;
-    throw error;
-  }
+  });
+  if (!cached) return network;
+  const timer = new Promise((resolve) => setTimeout(resolve, NETWORK_TIMEOUT));
+  const response = await Promise.race([network.catch(() => {}), timer]);
+  return response || recode(cached, DecompressionStream);
 }
 
 self.addEventListener("install", (event) => {

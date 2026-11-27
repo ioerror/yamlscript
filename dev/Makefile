@@ -9,7 +9,7 @@ image:
 	podman build --tag $(IMAGE) --file $(ROOT)/dev/Containerfile $(ROOT)/dev
 
 test: image
-	$(RUN) make deps test
+	$(RUN) make test
 
 offline-test: image
 	$(RUN) bash $(ROOT)/dev/offline-test.sh

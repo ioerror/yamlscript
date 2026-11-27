@@ -23,8 +23,20 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js", {
       scope: "/assets/playground/",
     });
+    navigator.storage.persist();
   });
+  navigator.serviceWorker.ready
+    .then(() => caches.match("/assets/playground/runtime.wasm"))
+    .then((cached) => {
+      if (cached) document.documentElement.dataset.offline = "";
+    });
 }
+addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  const button = document.querySelector("[data-install]");
+  button.hidden = false;
+  button.onclick = () => event.prompt();
+});
 </script>
 {% endif %}
 {% endblock %}

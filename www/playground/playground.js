@@ -2,6 +2,8 @@ import {
   defaultKeymap,
   history as historyExtension,
   historyKeymap,
+  indentLess,
+  indentMore,
 } from "@codemirror/commands";
 import {
   defaultHighlightStyle,
@@ -43,6 +45,8 @@ import {
 const DEFAULT_RUN_TIMEOUT = 5000;
 const DEFAULT_EVAL_FORMAT = "yaml";
 const AUTO_RUN_DELAY = 500;
+const SAVED_PREFIX = "ys-playground:saved:";
+const KEYS = ["indent", "dedent", ":", "=:", "(", ")", "$", "\"", "'"];
 const exampleCollator = new Intl.Collator("en", {numeric: true});
 
 function insertIndentSpaces({state, dispatch}) {
@@ -235,6 +239,7 @@ function initializePlayground(root) {
   const sourcePanel = root.querySelector("[data-panel='source']");
   const argsRow = root.querySelector("[data-args-row]");
   const argsInput = root.querySelector("[data-args]");
+  const stdinInput = root.querySelector("[data-stdin]");
   const evaluationOutput = root.querySelector("[data-output='evaluation']");
   const compiledOutput = root.querySelector("[data-output='compiled']");
   const status = root.querySelector("[data-status]");
@@ -247,6 +252,9 @@ function initializePlayground(root) {
   const configDialog = root.querySelector("[data-config-dialog]");
   const factoryReset = root.querySelector("[data-factory-reset]");
   const shareButton = root.querySelector("[data-share]");
+  const saveButton = root.querySelector("[data-save]");
+  const savedSelect = root.querySelector("[data-saved]");
+  const keyRow = root.querySelector("[data-keys]");
   const collapseButton = root.querySelector("[data-collapse]");
   const expandButton = root.querySelector("[data-expand]");
   const openPlayground = root.querySelector("[data-open-playground]");
@@ -408,6 +416,17 @@ function initializePlayground(root) {
       if (!targetURL.hash) targetURL.searchParams.set("e", item.id);
       openPlayground.href = targetURL.toString();
     }
+  }
+
+  function renderSaved() {
+    const keys = Object.keys(localStorage)
+      .filter((key) => key.startsWith(SAVED_PREFIX))
+      .sort();
+    savedSelect.replaceChildren(
+      new Option("Saved", ""),
+      ...keys.map((key) => new Option(key.slice(SAVED_PREFIX.length), key)),
+    );
+    savedSelect.hidden = !keys.length;
   }
 
   function schedulePlaygroundURL() {
@@ -1018,6 +1037,7 @@ function initializePlayground(root) {
             files,
           },
           args: argsInput.value.trim().split(/\s+/).filter(Boolean),
+          stdin: stdinInput.value,
           ignoreTerminalEffects: item.ignoreTerminalEffects || false,
         },
       });
@@ -1152,6 +1172,37 @@ function initializePlayground(root) {
   });
   factoryReset.addEventListener("click", resetPlayground);
   shareButton?.addEventListener("click", () => void sharePlayground());
+  saveButton?.addEventListener("click", () => {
+    const name = prompt("Name");
+    if (!name) return;
+    updatePlaygroundURL();
+    localStorage.setItem(SAVED_PREFIX + name, location.href);
+    renderSaved();
+  });
+  savedSelect?.addEventListener("change", () => {
+    const url = new URL(localStorage.getItem(savedSelect.value));
+    url.searchParams.set("t", Date.now());
+    location.assign(url);
+  });
+  if (savedSelect) renderSaved();
+  for (const key of KEYS) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = key;
+    keyRow.append(button);
+  }
+  keyRow.addEventListener("pointerdown", (event) => {
+    const key = event.target.textContent;
+    if (!KEYS.includes(key)) return;
+    event.preventDefault();
+    if (key === "indent") {
+      indentMore(sourceEditor);
+    } else if (key === "dedent") {
+      indentLess(sourceEditor);
+    } else {
+      sourceEditor.dispatch(sourceEditor.state.replaceSelection(key));
+    }
+  });
   collapseButton?.addEventListener("click", () => setCollapsed(true));
   expandButton?.addEventListener("click", () => setCollapsed(false));
   openPlayground?.addEventListener("click", updatePlaygroundURL);

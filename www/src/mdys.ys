@@ -125,6 +125,9 @@ defn playground-full-actions():
               aria-controls="ys-playground-help">Help</button>
       <button type="button" class="ys-playground__share"
               data-share>Share</button>
+      <button type="button" data-save>Save</button>
+      <select data-saved aria-label="Saved programs" hidden></select>
+      <button type="button" data-install hidden>Install</button>
       <button type="button" class="ys-playground__config"
               data-config-open>
         Settings

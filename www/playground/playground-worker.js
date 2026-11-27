@@ -106,7 +106,7 @@ function execute(request) {
     const runtimeFiles = {...files};
     const environment = runtimeFiles[ENVIRONMENT_PATH] || "";
     delete runtimeFiles[ENVIRONMENT_PATH];
-    virtualFs.mount(runtimeFiles);
+    virtualFs.mount(runtimeFiles, request.stdin);
     const runtimeRequest = {
       ...request,
       file: `/playground/${entry}`,
