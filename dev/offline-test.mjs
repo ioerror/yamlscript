@@ -262,6 +262,15 @@ check("Save adds a saved program", await evaluate(
     .some((option) => option.textContent === "mine")`,
 ));
 
+const manifest = await send("Page.getAppManifest");
+const app = JSON.parse(manifest.data || "{}");
+check("saved program has its own manifest", !manifest.errors.length &&
+  app.name === "mine" && app.start_url.includes("app=mine") &&
+  new URL(app.start_url).hash.length > 1);
+console.log("installability errors: " + JSON.stringify(
+  (await send("Page.getInstallabilityErrors")).installabilityErrors,
+));
+
 await open("/about/");
 check("docs page has no service worker", await evaluate(
   `navigator.serviceWorker.controller === null &&
@@ -292,8 +301,8 @@ check("offline: program runs", await open("/play/", RAN));
 await evaluate(`const saved = document.querySelector("[data-saved]");
   saved.selectedIndex = 1;
   saved.dispatchEvent(new Event("change"));`);
-check("offline: saved program opens and runs", await until(
-  `location.search.includes("t=") && ${edited}`,
+check("offline: saved program opens and runs as its own app", await until(
+  `location.search.includes("t=") && document.title === "mine" && ${edited}`,
   60,
 ));
 

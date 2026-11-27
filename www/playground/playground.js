@@ -409,6 +409,26 @@ function initializePlayground(root) {
     if (replaceHistory) {
       window.history.replaceState(null, "", currentURL);
     }
+    const appURL = new URL(currentURL);
+    const app = appURL.searchParams.get("app");
+    const manifest = document.querySelector("link[rel=manifest]");
+    if (app && manifest) {
+      appURL.searchParams.set("e", item.id);
+      document.title = app;
+      manifest.href = "data:application/manifest+json," +
+        encodeURIComponent(JSON.stringify({
+          name: app,
+          short_name: app,
+          id: `/play/?app=${encodeURIComponent(app)}`,
+          start_url: appURL,
+          display: "standalone",
+          icons: [{
+            src: `${location.origin}/image/yamlscript-logo.svg`,
+            sizes: "any",
+            type: "image/svg+xml",
+          }],
+        }));
+    }
     if (openPlayground) {
       const targetURL = new URL(
         buildPlaygroundURL(currentURL, "/play/", state),
@@ -1175,6 +1195,9 @@ function initializePlayground(root) {
   saveButton?.addEventListener("click", () => {
     const name = prompt("Name");
     if (!name) return;
+    const url = new URL(location.href);
+    url.searchParams.set("app", name);
+    history.replaceState(null, "", url);
     updatePlaygroundURL();
     localStorage.setItem(SAVED_PREFIX + name, location.href);
     renderSaved();
