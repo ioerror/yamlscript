@@ -226,6 +226,8 @@ defn playground-full-help():
     <li>For programs, select <strong>OUT</strong> or
         <strong>GLJ</strong>.</li>
     <li><strong>Share</strong> copies a URL containing your edits.</li>
+    <li>Use <strong>Add to Home Screen</strong> in your browser to
+        install the Playground as an app that works offline.</li>
     <li>Press <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd>
         to evaluate.</li>
 

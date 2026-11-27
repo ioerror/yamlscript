@@ -11,6 +11,9 @@ YS has 3 main things you might want to install:
 3. A [YS loader library](bindings.md#currently-available-libraries) for your
    particular programming language, like Python, Rust, NodeJS, etc.
 
+To use YS with no install, open the [Playground](../play.md).
+You can add it to your home screen and use it offline.
+
 
 ## Install with Homebrew
 

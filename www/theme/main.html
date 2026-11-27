@@ -12,6 +12,23 @@ f.parentNode.insertBefore(j,f);
 {{ super() }}
 {% endblock %}
 
+{% block extrahead %}
+{{ super() }}
+{% if page and page.url == "play/" %}
+<link rel="manifest" href="{{ 'play.webmanifest' | url }}">
+<script>
+if ("serviceWorker" in navigator) {
+  addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js", {scope: "/play/"});
+    navigator.serviceWorker.register("/sw.js", {
+      scope: "/assets/playground/",
+    });
+  });
+}
+</script>
+{% endif %}
+{% endblock %}
+
 {% block header %}
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NW44XF8B"

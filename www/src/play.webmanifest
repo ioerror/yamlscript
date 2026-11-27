@@ -1,0 +1,13 @@
+{
+  "name": "YAMLScript Playground",
+  "short_name": "YS Play",
+  "start_url": "/play/",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/image/yamlscript-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
