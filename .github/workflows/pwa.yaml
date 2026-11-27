@@ -1,0 +1,23 @@
+name: Playground PWA
+
+on:
+  push:
+    branches: [prototype-pwa-ci]
+
+permissions:
+  contents: read
+
+jobs:
+  podman:
+    name: Website tests and offline test in podman
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Website tests (make test)
+      run: make -f dev/Makefile test
+
+    - name: Offline test in headless Chromium
+      run: make -f dev/Makefile offline-test

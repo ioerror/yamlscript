@@ -1,0 +1,6 @@
+FROM docker.io/library/debian:trixie-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      bash ca-certificates chromium curl gcc git gzip libc6-dev libcairo2 \
+      libfreetype-dev libjpeg-dev make patch perl procps psmisc python3 \
+      python3-venv unzip xz-utils zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
