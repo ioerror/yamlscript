@@ -1456,3 +1456,28 @@ body:has(.ys-playground[data-variant='full']) .md-tabs {
     flex-basis: calc((100% - .65rem) / 2);
   }
 }
+
+[data-offline] .ys-playground__status::after {
+  content: ' (ready offline)';
+}
+
+.ys-playground__keys {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .ys-playground__keys {
+    display: flex;
+  }
+
+  .ys-playground__editor .cm-editor {
+    font-size: 16px;
+  }
+}
+
+@media (display-mode: standalone) {
+  .md-header,
+  .md-footer {
+    display: none;
+  }
+}

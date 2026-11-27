@@ -89,13 +89,18 @@ export function createVirtualFileSystem(output) {
       O_DIRECTORY: 65536,
     },
 
-    mount(files) {
+    mount(files, stdin = "") {
       nodes.clear();
       descriptors.clear();
       nextIno = 1;
       nextFd = 10;
       addDirectory("/");
       addDirectory(ROOT);
+      nodes.set("/dev/stdin", {
+        type: "file",
+        data: encoder.encode(stdin),
+        ino: nextIno++,
+      });
       for (const [relative, source] of Object.entries(files)) {
         if (!relative || relative.startsWith("/") || relative.includes("\\")) {
           throw fsError("EINVAL", "invalid project path", relative);

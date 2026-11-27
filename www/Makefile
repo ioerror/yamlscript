@@ -127,7 +127,7 @@ dirs: $(DIRS)
 
 test: test-playground
 
-test-playground: src/index.md src/play.md
+test-playground: $(YS) src/index.md src/play.md
 test-playground: $(PLAYGROUND-BUNDLE-STAMP) $(PLAYGROUND-RUNTIME-STAMP)
 	npm test
 	node $(PLAYGROUND-SRC)/runtime-smoke.cjs \
